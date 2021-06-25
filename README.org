@@ -5,3 +5,11 @@
 #+begin_src shell
 lein new re-frame +10x +cider 
 #+end_src
+
+** Understanding REST API
+Following [[https://medium.com/swlh/building-a-rest-api-in-clojure-3a1e1ae096e][this post]] on a start point to APIs in Clojure.
+
+#+begin_src shell
+
+#+end_src
+
