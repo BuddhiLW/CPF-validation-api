@@ -1,27 +1,44 @@
 * Flow technical interview
-** REST API to analize CPF and return a pdf with the valid values
-* Project initialized with
+*** The goal
+REST API to analize CPF and return a pdf with the valid values
 
+*** Requisites
+- DONE: Receive a CPF through the body of the API-request url.
+- DONE: Validate the CPF, or discard the call.
+- DONE: Cryptograph the CPF-string through a SHA256 transform.
+- DONE: Insert the result in a PDF.
+  
+** Project initialized with
 #+begin_src shell
-lein new re-frame +10x +cider 
+lein new app <my-application-name>
+#+end_src
+
+** Packages used
+#+begin_src clojure
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 ;; Manage routers
+                 [compojure "1.6.1"]
+                 ;; Create server 
+                 [http-kit "2.3.0"]
+                 ;; Standard ring response format
+                 [ring/ring-defaults "0.3.2"]
+                 ;; Convert clojure maps into json format
+                 [org.clojure/data.json "0.2.6"]
+                 ;; Generate pdf as response
+                 [clj-pdf "2.5.8"]
+                 ;; Transform text into sha256
+                 [digest "1.4.10"]
+                 ;; Validate cpf
+                 [cadastro-de-pessoa "0.4.1"]]
 #+end_src
 
 ** Understanding REST API
-Following [[https://medium.com/swlh/building-a-rest-api-in-clojure-3a1e1ae096e][this post]] on a start point to APIs in Clojure.
-
-#+begin_src shell
-
-#+end_src
+Inspired by [[https://medium.com/swlh/building-a-rest-api-in-clojure-3a1e1ae096e][this post]], which talks about a start point to writting APIs in Clojure.
 
 *** Use =app-routes= to direct to which http
 So,
 #+begin_src clojure
   (defroutes app-routes
-    ;; (GET "/" [] simple-body-page)
-    ;; (GET "/request" [] request-example)
-    ;; (GET "/hello" [] hello-name)
-    ;; (GET "/people" [] people-handler)
-    ;; (GET "/people/add" [] addperson-handler)
     (GET "/cpf" [] cpf-handler)
     (route/not-found "Error, page not found!"))
 #+end_src
@@ -34,7 +51,85 @@ http://127.0.0.1:3000/cpf
 
 This will make a call to cpf-handler.
 
-** Testing the route
+** Writing the helpers
+These will transform our data.
+
+#+begin_src clojure
+  ;; ------ Helper functions --------
+  
+  (defn crypto-cpf [cpf]
+    (digest/sha-256 (str cpf)))
+  
+  ;; (crypto-cpf "45350813870")
+  ;; => "4146848f92fcd7aa18837a4fe7c72e4566514eaac4c8757637cfef82719650da"
+  
+  ;; Collection Helper functions to add a new cpf
+  
+  ;; Verify and encrypt, if the cpf is valid.
+  (defn crypto-if-valid [cpf]
+    (if (cpf/valid? cpf)
+      (str (crypto-cpf cpf))))
+  
+  ;; Write result to pdf.
+  (defn pdf-out [encrypted-cpf]
+    (pdf/pdf 
+     [{}
+      [:phrase (str encrypted-cpf)]]
+     "doc.pdf"))
+  
+  ;; Composing the functions.
+  (defn pdf-crypted [cpf]
+    (pdf-out (crypto-if-valid (str cpf))))
+  
+  ;; test (valid cpf)
+  ;; (pdf-crypted "15069602861")
+  
+  ;; Get the parameter specified by cpf, from :params object, in request.
+  (defn getparameter [req cpf] (get (:params req) cpf))
+#+end_src
+
+** Finally, coding the call
+#+begin_src clojure
+;; --------- Response ------------
+;; Return "doc.pdf" at the root directory.
+(defn cpf-handler [req]
+  {:status  200
+   :headers {"Content-Type" "text/json"}
+   :body
+   (->
+    (pdf-crypted (str (:cpf (:params req)))))})
+;; (cpf-handler "http://127.0.0.1:3000/cpf?cpf=45350813870")
+#+end_src
+
+* Testing the application
+
+On the shell, in the =./applicantion/= root-path,
+#+begin_src shell
+  lein run
+#+end_src
+
+On the browser, after lein have loaded the project,
 #+begin_example
-http://127.0.0.1:3000/cpf?cpf=45350813870
+http://127.0.0.1:3000/cpf?cpf=45880813870 
 #+end_example
+(this is a fake cpf and shouldn't return anything.)
+
+On the other hand, on the browser,
+#+begin_example
+http://127.0.0.1:3000/cpf?cpf=45350813870 
+#+end_example
+
+Should return a "doc.pdf" on the root of the application.
+
+Example:
+
+#+begin_src shell
+./application $ ls
+#+end_src
+
+#+begin_example
+doc  src  target  test  doc.pdf  project.clj
+#+end_example
+
+#+ATTR_HTML: :width 500px
+[[file:pic-selected-210625-2202-05.png][file:./example.png]]
