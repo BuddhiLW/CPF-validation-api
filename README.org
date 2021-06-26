@@ -13,3 +13,28 @@ Following [[https://medium.com/swlh/building-a-rest-api-in-clojure-3a1e1ae096e][
 
 #+end_src
 
+*** Use =app-routes= to direct to which http
+So,
+#+begin_src clojure
+  (defroutes app-routes
+    ;; (GET "/" [] simple-body-page)
+    ;; (GET "/request" [] request-example)
+    ;; (GET "/hello" [] hello-name)
+    ;; (GET "/people" [] people-handler)
+    ;; (GET "/people/add" [] addperson-handler)
+    (GET "/cpf" [] cpf-handler)
+    (route/not-found "Error, page not found!"))
+#+end_src
+
+Will make us to request the page as
+
+#+begin_example
+http://127.0.0.1:3000/cpf
+#+end_example
+
+This will make a call to cpf-handler.
+
+** Testing the route
+#+begin_example
+http://127.0.0.1:3000/cpf?cpf=45350813870
+#+end_example

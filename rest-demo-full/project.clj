@@ -4,16 +4,20 @@
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 ; Manage routers
+                 ;; Manage routers
                  [compojure "1.6.1"]
-                 ; Create server 
+                 ;; Create server 
                  [http-kit "2.3.0"]
-                 ; Standard ring response format
+                 ;; Standard ring response format
                  [ring/ring-defaults "0.3.2"]
-                 ; Convert clojure maps into json format
+                 ;; Convert clojure maps into json format
                  [org.clojure/data.json "0.2.6"]
-                 ; Generate pdf as response
-                 [clj-pdf "2.5.8"]]
+                 ;; Generate pdf as response
+                 [clj-pdf "2.5.8"]
+                 ;; Transform text into sha256
+                 [digest "1.4.10"]
+                 ;; Validate cpf
+                 [cadastro-de-pessoa "0.4.1"]]
   :main ^:skip-aot rest-demo.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
